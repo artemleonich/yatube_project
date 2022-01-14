@@ -1,24 +1,26 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Post, Group
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
+
+from .models import Group
+from .models import Post
 
 
 POSTS_LIMIT = 10
 
 
 def index(request):
-    posts = Post.objects.select_related(
-        "author").select_related('group')[:POSTS_LIMIT]
+    posts = Post.objects.select_related("author", "group")[:POSTS_LIMIT]
     context = {
-        'posts': posts,
+        "posts": posts,
     }
-    return render(request, 'posts/index.html', context)
+    return render(request, "posts/index.html", context)
 
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()[:POSTS_LIMIT]
     context = {
-        'group': group,
-        'posts': posts,
+        "group": group,
+        "posts": posts,
     }
-    return render(request, 'posts/group_list.html', context)
+    return render(request, "posts/group_list.html", context)
