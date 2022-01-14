@@ -6,7 +6,8 @@ POSTS_LIMIT = 10
 
 
 def index(request):
-    posts = Post.objects.select_related("author").select_related('group')[:POSTS_LIMIT]
+    posts = Post.objects.select_related(
+        "author").select_related('group')[:POSTS_LIMIT]
     context = {
         'posts': posts,
     }
