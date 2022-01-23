@@ -47,26 +47,24 @@ def profile(request, username):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
     title = username
-    template = "posts/profile.html"
     context = {
         "user": user,
         "count_user_posts": count_user_posts,
         "page_obj": page_obj,
         "title": title,
     }
-    return render(request, template, context)
+    return render(request, "posts/profile.html", context)
 
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     user = get_object_or_404(User, username=post.author)
     count = Post.objects.filter(author_id=user).all().count()
-    template = "posts/post_detail.html"
     context = {
         "post": post,
         "count": count,
     }
-    return render(request, template, context)
+    return render(request, "posts/post_detail.html", context)
 
 
 def post_create(request):
@@ -82,3 +80,24 @@ def post_create(request):
     form = PostForm()
     title = "Добавить запись"
     return render(request, template, {"form": form, "title": title})
+
+
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = PostForm(instance=post)
+
+    if request.method == "POST":
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            form.save()
+            return redirect("posts:profile", post.author)
+        return render(request, "posts/create_post.html", {"form": form})
+
+    is_edit = True
+    context = {
+        "form": form,
+        "is_edit": is_edit,
+    }
+    return render(request, "posts/create_post.html", context)
