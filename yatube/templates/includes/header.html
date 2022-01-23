@@ -13,7 +13,6 @@
     </a>
     <ul class="nav nav-pills">
       {% with request.resolver_match.view_name as view_name %}
-        <!-- проверка, активен ли блок для подсветки -->
         <li class="nav-item">
           <a class="nav-link {% if view_name  == 'about:author' %}active{% endif %}"
              href="{% url 'about:author' %}">
