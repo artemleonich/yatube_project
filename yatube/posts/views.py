@@ -1,10 +1,12 @@
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
+
 
 from .models import Group
 from .models import Post
 from .models import User
+from .forms import PostForm
 
 
 POSTS_LIMIT = 10
@@ -65,3 +67,18 @@ def post_detail(request, post_id):
         "count": count,
     }
     return render(request, template, context)
+
+
+def post_create(request):
+    template = "posts/create_post.html"
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            form.save()
+            return redirect("posts:profile", post.author)
+        return render(request, template, {"form": form})
+    form = PostForm()
+    title = "Добавить запись"
+    return render(request, template, {"form": form, "title": title})
