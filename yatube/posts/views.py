@@ -4,6 +4,7 @@ from django.shortcuts import render
 
 from .models import Group
 from .models import Post
+from .models import User
 
 
 POSTS_LIMIT = 10
@@ -34,3 +35,33 @@ def group_posts(request, slug):
         "page_obj": page_obj,
     }
     return render(request, "posts/group_list.html", context)
+
+
+def profile(request, username):
+    user = get_object_or_404(User, username=username)
+    post_list = Post.objects.filter(author=user).all()
+    count_user_posts = post_list.count()
+    paginator = Paginator(post_list, POSTS_LIMIT)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    title = username
+    template = "posts/profile.html"
+    context = {
+        "user": user,
+        "count_user_posts": count_user_posts,
+        "page_obj": page_obj,
+        "title": title,
+    }
+    return render(request, template, context)
+
+
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    user = get_object_or_404(User, username=post.author)
+    count = Post.objects.filter(author_id=user).all().count()
+    template = "posts/post_detail.html"
+    context = {
+        "post": post,
+        "count": count,
+    }
+    return render(request, template, context)
