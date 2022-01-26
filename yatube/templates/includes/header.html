@@ -25,7 +25,7 @@
         </li>
         {% if user.username %}
           <li class="nav-item">
-            <a class="nav-link {% if view_name  == 'post:create' %}active{% endif %}"
+            <a class="nav-link {% if view_name  == 'posts:post_create' %}active{% endif %}"
                href="{% url 'posts:post_create' %}">
               Новая запись
             </a>
