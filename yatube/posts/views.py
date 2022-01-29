@@ -1,4 +1,5 @@
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, Page
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -12,9 +13,9 @@ from .forms import PostForm
 POSTS_LIMIT = 10
 
 
-def paginate(cursor, records):
+def paginate(page_number: int, records: QuerySet) -> Page:
     paginator = Paginator(records, POSTS_LIMIT)
-    return paginator.get_page(cursor)
+    return paginator.get_page(page_number)
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -29,7 +30,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
 def group_posts(request: HttpRequest, slug: str) -> HttpResponse:
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.all()
+    posts = group.posts.select_related("author")
     page_number = request.GET.get("page")
     page_obj = paginate(page_number, posts)
     context = {
@@ -42,9 +43,11 @@ def group_posts(request: HttpRequest, slug: str) -> HttpResponse:
 def profile(request: HttpRequest, username: str) -> HttpResponse:
     author = get_object_or_404(User, username=username)
     post_list = author.posts.all()
-    count_user_posts = author.posts.count()
     page_number = request.GET.get("page")
     page_obj = paginate(page_number, post_list)
+
+    count_user_posts = author.posts.count()
+
     context = {
         "author": author,
         "count_user_posts": count_user_posts,
@@ -77,14 +80,17 @@ def post_create(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
     post = get_object_or_404(Post, id=post_id)
+    form = PostForm(request.POST or None, instance=post)
+
     if post.author != request.user:
         return redirect("posts:post_detail", post_id)
-    form = PostForm(request.POST or None, instance=post)
+
     template = "posts/create_post.html"
     context = {
         "form": form,
         "is_edit": True,
     }
+
     if not form.is_valid():
         return render(request, template, context)
     form.save()
