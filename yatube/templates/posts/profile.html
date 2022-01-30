@@ -9,12 +9,14 @@
       <h3>Всего постов: {{ count_user_posts }}</h3>
       {% for post in page_obj %}
         {% include 'posts/article.html' %}
+
         {% if post.group %}
           <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
         {% endif %}
         {% if not forloop.last %}<hr>{% endif %}
       {% endfor %}
       {% include 'posts/includes/paginator.html' %}
+
     </div>
   </main>
 {% endblock %}
