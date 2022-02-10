@@ -1,26 +1,11 @@
+from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from django.urls import reverse
 
 from ..models import Post, Group
 
 User = get_user_model()
-
-
-class StaticURLTests(TestCase):
-    def setUp(self):
-        self.guest_client = Client()
-
-    def test_homepage(self):
-        response = self.guest_client.get("/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_about_author(self):
-        response = self.guest_client.get("/about/author/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_about_tech(self):
-        response = self.guest_client.get("/about/tech/")
-        self.assertEqual(response.status_code, 200)
 
 
 class PostURLTests(TestCase):
@@ -37,6 +22,7 @@ class PostURLTests(TestCase):
             text="Тестовый заголовок",
             author=cls.author,
         )
+        cls.id = cls.post.id
 
     def setUp(self):
         self.guest_client = Client()
@@ -48,30 +34,45 @@ class PostURLTests(TestCase):
         templates_url_guest_client = {
             "/": "posts/index.html",
             "/group/test_group/": "posts/group_list.html",
-            "/profile/noname/": "posts/profile.html",
-            "/posts/1/": "posts/post_detail.html",
-            "/unexisting_page/": "unexisting_page.html",
-        }
-        for address, template in templates_url_guest_client.items():
-            with self.subTest(address=address):
-                response = self.guest_client.get(address)
-                if address == "/unexisting_page/":
-                    self.assertEqual(response.status_code, 404)
-                else:
-                    self.assertEqual(response.status_code, 200)
-
-        templates_url_authorized_client = {
-            "/": "posts/index.html",
-            "/group/test_group/": "posts/group_list.html",
-            "/profile/noname/": "posts/profile.html",
-            "/posts/1/": "posts/post_detail.html",
+            f"/profile/{self.author}/": "posts/profile.html",
+            f"/posts/{self.id}/": "posts/post_detail.html",
+            f"/posts/{self.id}/edit/": "posts/create_post.html",
             "/create/": "posts/create_post.html",
-            "/posts/1/edit/": "posts/create_post.html",
         }
-        for address, template in templates_url_authorized_client.items():
-            with self.subTest(address=address):
-                response = self.authorized_client.get(address)
-                if address == "/unexisting_page/":
-                    self.assertEqual(response.status_code, 404)
-                else:
-                    self.assertEqual(response.status_code, 200)
+        for (
+            urls,
+            template,
+        ) in templates_url_guest_client.items():
+            with self.subTest(urls=urls):
+                response = self.authorized_client.get(urls)
+                self.assertTemplateUsed(response, template)
+
+    def test_urls_for_all(self):
+        """Страницы доступны любому пользователю."""
+        templates_urls_all = {
+            "/": HTTPStatus.OK,
+            "/group/test_group/": HTTPStatus.OK,
+            f"/profile/{self.author}/": HTTPStatus.OK,
+            f"/posts/{self.id}/": HTTPStatus.OK,
+            "/unexiscting_page/": HTTPStatus.NOT_FOUND,
+        }
+        for urls, status in templates_urls_all.items():
+            with self.subTest(urls=urls):
+                response = self.guest_client.get(urls)
+                self.assertEqual(response.status_code, status)
+
+    def test_post_create_url_for_authorized(self):
+        """Страница доступна только авторизованному пользователю."""
+        response = self.authorized_client.get(reverse("posts:post_create"))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_post_edit_url_for_author(self):
+        """Страница доступна автору поста."""
+        if self.post.author == self.author:
+            response = self.authorized_client.get(
+                reverse(
+                    "posts:post_edit",
+                    kwargs={"post_id": self.id},
+                )
+            )
+            self.assertEqual(response.status_code, HTTPStatus.OK)
