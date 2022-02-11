@@ -68,11 +68,10 @@ class PostURLTests(TestCase):
 
     def test_post_edit_url_for_author(self):
         """Страница доступна автору поста."""
-        if self.post.author == self.author:
-            response = self.authorized_client.get(
-                reverse(
-                    "posts:post_edit",
-                    kwargs={"post_id": self.id},
-                )
+        response = self.authorized_client.get(
+            reverse(
+                "posts:post_edit",
+                kwargs={"post_id": self.id},
             )
-            self.assertEqual(response.status_code, HTTPStatus.OK)
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
