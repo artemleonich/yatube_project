@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpRequest
 
 
-from .models import Group, Post, User, Comment
+from .models import Group, Post, User, Comment, Follow
 from .forms import PostForm, CommentForm
 
 
@@ -129,3 +129,37 @@ def add_comment(request: HttpRequest, post_id: int) -> HttpResponse:
         comment.post = post
         comment.save()
     return redirect("posts:post_detail", post_id=post_id)
+
+
+@login_required
+def follow_index(request: HttpRequest) -> HttpResponse:
+    """Функция генерирует страницу с постами авторов,
+    на которых подписан пользователь."""
+    template = "posts/follow.html"
+    posts_list = Post.objects.filter(author__following__user=request.user)
+    page_obj = paginate(request, posts_list)
+    context = {
+        "page_obj": page_obj,
+    }
+    return render(request, template, context)
+
+
+@login_required
+def profile_follow(request, username):
+    """Функция для подписки на авторов."""
+    template = "posts:profile"
+    author = User.objects.get(username=username)
+    exist_following = Follow.objects.filter(
+        user=request.user, author=author
+    ).exists()
+    if request.user.username != username and not exist_following:
+        Follow.objects.create(user=request.user, author=author)
+    return redirect(template, username=username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    """Функция для редактирования поста."""
+    author = User.objects.get(username=username)
+    Follow.objects.get(user=request.user, author=author).delete()
+    return redirect("posts:profile", username=username)

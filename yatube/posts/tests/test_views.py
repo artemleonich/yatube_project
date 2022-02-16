@@ -5,7 +5,7 @@ from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -222,3 +222,61 @@ class PaginatorViewsTest(TestCase):
             len(response.context["page_obj"]),
             self.posts_count % POSTS_LIMIT,
         )
+
+
+class FollowTest(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(username="TestAuthor")
+        self.user = User.objects.create_user(username="TestUser")
+        self.authorize_client = Client()
+        self.authorize_client.force_login(self.user)
+
+    def test_auth_user_can_follow(self):
+        """Авторизованный пользователь может подписываться."""
+        follow_count = Follow.objects.count()
+        self.authorize_client.get(
+            reverse(
+                "posts:profile_follow",
+                kwargs={"username": self.author.username},
+            )
+        )
+        follow = Follow.objects.first()
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.assertEqual(follow.author, self.author)
+        self.assertEqual(follow.user, self.user)
+
+    def test_auth_user_can_unfollow(self):
+        """Авторизованный пользователь может отписываться."""
+        follow_count = Follow.objects.count()
+        Follow.objects.create(user=self.user, author=self.author)
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.authorize_client.get(
+            reverse(
+                "posts:profile_unfollow",
+                kwargs={"username": self.author.username},
+            )
+        )
+        self.assertEqual(Follow.objects.count(), follow_count)
+
+    def test_new_post_appear_in_follower_page(self):
+        """Новая запись автора появляется в ленте тех, кто на него подписан."""
+        self.post = Post.objects.create(
+            text="Тестовый текст", author=self.author
+        )
+        Follow.objects.create(author=self.author, user=self.user)
+        response = self.authorize_client.get(reverse("posts:follow_index"))
+        self.assertEqual(response.context["page_obj"][0], self.post)
+
+    def test_new_post_dont_appear_in_follower_page(self):
+        """Новая запись автора не появляется в ленте тех,
+        кто на не него подписан."""
+        self.post = Post.objects.create(
+            text="Тестовый текст", author=self.author
+        )
+        Follow.objects.create(author=self.author, user=self.user)
+        self.second_user = User.objects.create_user(
+            username="username",
+        )
+        self.authorize_client.force_login(self.second_user)
+        response = self.authorize_client.get(reverse("posts:follow_index"))
+        self.assertEqual(len(response.context["page_obj"]), 0)

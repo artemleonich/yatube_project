@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Post, Comment
+from .models import Post, Comment, Follow
 
 
 class PostForm(forms.ModelForm):
@@ -27,3 +27,12 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = {"text"}
         labels = {"text": "Текст"}
+
+
+class FollowForm(forms.ModelForm):
+    """Форма подписки на авторов."""
+
+    class Meta:
+        model = Follow
+        fields = {"user"}
+        labels = {"Пользователь подписывается на:"}
