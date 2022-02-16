@@ -30,9 +30,31 @@ class Post(models.Model):
         null=True,
         related_name="posts",
     )
+    image = models.ImageField("Картинка", upload_to="posts/", blank=True)
 
     def __str__(self):
         return self.text
 
     class Meta:
         ordering = ("-pub_date",)
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="comments"
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Автор",
+        related_name="comments",
+    )
+    text = models.TextField(
+        "Текст комментария", help_text="Введите текст комментария"
+    )
+    created = models.DateTimeField(
+        "Дата публикации комментария", auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ("-created",)

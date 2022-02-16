@@ -136,3 +136,5 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+
+yatube/media/

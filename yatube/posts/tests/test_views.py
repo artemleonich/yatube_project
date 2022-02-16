@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.cache import cache
 
 from ..models import Post, Group
 
@@ -128,6 +130,56 @@ class TaskPagesTests(TestCase):
                 form_field2 = response2.context.get("form").fields.get(value)
                 self.assertIsInstance(form_field1, expected)
                 self.assertIsInstance(form_field2, expected)
+
+    def test_images_appears_in_pages(self):
+        """При выводе поста с картинкой
+        изображение появлется на нужных страницах."""
+        posts_count = Post.objects.count()
+        small_gif = (
+            b"\x47\x49\x46\x38\x39\x61\x02\x00"
+            b"\x01\x00\x80\x00\x00\x00\x00\x00"
+            b"\xFF\xFF\xFF\x21\xF9\x04\x00\x00"
+            b"\x00\x00\x00\x2C\x00\x00\x00\x00"
+            b"\x02\x00\x01\x00\x00\x02\x02\x0C"
+            b"\x0A\x00\x3B"
+        )
+        uploaded = SimpleUploadedFile(
+            name="small.gif", content=small_gif, content_type="image/gif"
+        )
+        self.post_with_picture = Post.objects.create(
+            author=self.user,
+            text="Новый текст с картинкой",
+            group=self.group,
+            image=uploaded,
+        )
+        urls = (
+            reverse("posts:index"),
+            reverse("posts:profile", kwargs={"username": self.user}),
+            reverse("posts:group_list", kwargs={"slug": self.group.slug}),
+            reverse("posts:post_detail", kwargs={"post_id": self.post.id}),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                self.guest_client.get(url)
+                self.assertEqual(Post.objects.count(), posts_count + 1)
+
+    def test_cache_index(self):
+        """Проверка работы кэширования."""
+        cache1 = self.authorized_client.get(reverse("posts:index")).content
+        form_data = {
+            "group": self.group,
+            "text": "кэш",
+        }
+        self.authorized_client.post(
+            reverse("posts:post_create"), data=form_data, follow=True
+        )
+        cache2 = self.authorized_client.get(reverse("posts:index")).content
+        self.assertEqual(cache2, cache1)
+        cache.clear()
+        response_cache = self.authorized_client.get(
+            reverse("posts:index")
+        ).content
+        self.assertNotEqual(response_cache, cache1)
 
 
 class PaginatorViewsTest(TestCase):

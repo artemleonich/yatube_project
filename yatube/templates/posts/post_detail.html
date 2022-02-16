@@ -3,6 +3,9 @@
 {% block title %}Пост {{ post|truncatechars:30 }}{% endblock %}
 
 {% block content %}
+  {% load user_filters %}
+  {% load thumbnail %}
+
   <main>
     <div class="container py-4">
       <div class="row">
@@ -25,14 +28,43 @@
           </ul>
         </aside>
         <article class="col-12 col-md-8">
-          <p>
-            {{ post.text }}
-          </p>
-          {% if user.username == post.author.username %}
-            <a class="btn btn-primary" href="{% url "posts:post_edit" post.id %}">Редактировать запись</a>
+          {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+          <img class="card-img my-2" src="{{ im.url }}">
+        {% endthumbnail %}
+        <p>
+          {{ post.text }}
+        </p>
+        {% if user.username == post.author.username %}
+          <a class="btn btn-primary" href="{% url "posts:post_edit" post.id %}">Редактировать запись</a>
+        {% endif %}
+        {% for field in form %}
+          {% if user.is_authenticated %}
+            <div class="card my-4">
+              <h5 class="card-header">Добавить комментарий:</h5>
+              <div class="card-body">
+                <form method="post" action="{% url 'posts:add_comment' post.id %}">
+                  {% csrf_token %}
+                  <div class="form-group mb-2">{{ form.text|addclass:"form-control" }}</div>
+                  <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+              </div>
+            </div>
           {% endif %}
-        </article>
-      </div>
+        {% endfor %}
+        {% for comment in comments %}
+          <div class="media mb-4">
+            <div class="media-body">
+              <h5 class="mt-0">
+                <a href="{% url 'posts:profile' comment.author.username %}">{{ comment.author.username }}</a>
+              </h5>
+              <p>
+                {{ comment.text }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      </article>
     </div>
-  </main>
+  </div>
+</main>
 {% endblock %}

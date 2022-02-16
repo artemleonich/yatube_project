@@ -6,8 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpRequest
 
 
-from .models import Group, Post, User
-from .forms import PostForm
+from .models import Group, Post, User, Comment
+from .forms import PostForm, CommentForm
 
 
 POSTS_LIMIT: int = 10
@@ -70,9 +70,14 @@ def post_detail(request: HttpRequest, post_id: int) -> HttpResponse:
 
     author_posts_count = author.posts.count()
 
+    comments = Comment.objects.filter(post_id=post_id)
+    form = CommentForm()
+
     context = {
         "post": post,
         "author_posts_count": author_posts_count,
+        "form": form,
+        "comments": comments,
     }
     return render(request, "posts/post_detail.html", context)
 
@@ -92,7 +97,11 @@ def post_create(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
     post = get_object_or_404(Post, id=post_id)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post,
+    )
 
     if post.author != request.user:
         return redirect("posts:post_detail", post_id)
@@ -108,3 +117,15 @@ def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
 
     form.save()
     return redirect("posts:post_detail", post_id=post.id)
+
+
+@login_required
+def add_comment(request: HttpRequest, post_id: int) -> HttpResponse:
+    form = CommentForm(request.POST or None)
+    post = get_object_or_404(Post, id=post_id)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect("posts:post_detail", post_id=post_id)
