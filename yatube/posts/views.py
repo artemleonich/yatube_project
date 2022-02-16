@@ -53,6 +53,10 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
 
     page_number = request.GET.get("page")
     page_obj = paginate(page_number, post_list)
+    following = (
+        request.user.is_authenticated
+        and Follow.objects.filter(user=request.user, author=author).exists()
+    )
 
     count_user_posts = author.posts.count()
 
@@ -60,6 +64,7 @@ def profile(request: HttpRequest, username: str) -> HttpResponse:
         "author": author,
         "count_user_posts": count_user_posts,
         "page_obj": page_obj,
+        "following": following,
     }
     return render(request, "posts/profile.html", context)
 
@@ -159,7 +164,7 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    """Функция для редактирования поста."""
+    """Функция для отписок."""
     author = User.objects.get(username=username)
     Follow.objects.get(user=request.user, author=author).delete()
     return redirect("posts:profile", username=username)

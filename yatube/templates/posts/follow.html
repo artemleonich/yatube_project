@@ -4,11 +4,9 @@
 
 {% block content %}
   {% load thumbnail %}
-  {% load cache %}
 
   <div class="container py-5">
     <h1>Избранные авторы.</h1>
-    {% cache 20 index_page %}
     {% include 'posts/includes/switcher.html' %}
 
     {% for post in page_obj %}
@@ -26,11 +24,10 @@
       {{ post.text }}
     </p>
     {% if post.group_id != NULL %}
-      <a href="{% url 'posts:group_posts' post.group.slug %}">все записи группы</a>
+      <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
     {% endif %}
     {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}
   {% include 'posts/includes/paginator.html' %}
 
-{% endcache %}
 {% endblock %}
