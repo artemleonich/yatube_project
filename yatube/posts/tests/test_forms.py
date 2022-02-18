@@ -1,5 +1,6 @@
-from django.contrib.auth import get_user_model
 from http import HTTPStatus
+
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -61,12 +62,13 @@ class PostCreateFormTests(TestCase):
             ),
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        latest_post = Post.objects.first()
-        self.assertEqual(latest_post.text, form_data["text"])
-        self.assertEqual(latest_post.group.id, self.group.id)
-        self.assertEqual(latest_post.author, self.user)
         self.assertTrue(
-            Post.objects.filter(image=Post.objects.first().image).exists()
+            Post.objects.filter(
+                text="Текст поста",
+                group=self.group.id,
+                author=self.user,
+                image=Post.objects.first().image,
+            ).exists()
         )
 
     def test_edit_post(self):
@@ -123,17 +125,12 @@ class PostCreateFormTests(TestCase):
         comments_count = Comment.objects.count()
         form_data = {
             "text": "Тестовый текст комментария",
-            "author": self.post.author.username,
         }
         self.authorized_client.post(
             reverse("posts:add_comment", kwargs={"post_id": self.post.id}),
             data=form_data,
             follow=True,
         )
-        self.authorized_client.get(
-            reverse("posts:post_detail", kwargs={"post_id": self.post.id}),
-        )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        latest_comment = Comment.objects.get(id=self.post.id)
+        latest_comment = Comment.objects.latest("pk")
         self.assertEqual(latest_comment.text, form_data["text"])
-        self.assertEqual(latest_comment.author.username, form_data["author"])

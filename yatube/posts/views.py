@@ -1,23 +1,11 @@
-from django.core.paginator import Paginator, Page
-from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpRequest
 
-
 from .models import Group, Post, User, Comment, Follow
 from .forms import PostForm, CommentForm
-
-
-POSTS_LIMIT: int = 10
-
-
-def paginate(
-    page_number: int, records: QuerySet, posts_limit: int = POSTS_LIMIT
-) -> Page:
-    paginator = Paginator(records, posts_limit)
-    return paginator.get_page(page_number)
+from .utils import paginate
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -28,6 +16,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
     context = {
         "page_obj": page_obj,
+        "index": True,
     }
     return render(request, "posts/index.html", context)
 
@@ -143,9 +132,7 @@ def follow_index(request: HttpRequest) -> HttpResponse:
     template = "posts/follow.html"
     posts_list = Post.objects.filter(author__following__user=request.user)
     page_obj = paginate(request, posts_list)
-    context = {
-        "page_obj": page_obj,
-    }
+    context = {"page_obj": page_obj, "follow": True}
     return render(request, template, context)
 
 
@@ -153,18 +140,17 @@ def follow_index(request: HttpRequest) -> HttpResponse:
 def profile_follow(request, username):
     """Функция для подписки на авторов."""
     template = "posts:profile"
-    author = User.objects.get(username=username)
-    exist_following = Follow.objects.filter(
-        user=request.user, author=author
-    ).exists()
-    if request.user.username != username and not exist_following:
-        Follow.objects.create(user=request.user, author=author)
-    return redirect(template, username=username)
+    author = get_object_or_404(User, username=username)
+    user = request.user
+    if user != author:
+        Follow.objects.get_or_create(user=user, author=author)
+        return redirect(template, username=author)
+    return redirect(template, username=author.username)
 
 
 @login_required
 def profile_unfollow(request, username):
     """Функция для отписок."""
-    author = User.objects.get(username=username)
-    Follow.objects.get(user=request.user, author=author).delete()
+    author = get_object_or_404(User, username=username)
+    Follow.objects.filter(user=request.user, author=author).delete()
     return redirect("posts:profile", username=username)

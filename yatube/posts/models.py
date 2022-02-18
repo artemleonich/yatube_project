@@ -32,11 +32,11 @@ class Post(models.Model):
     )
     image = models.ImageField("Картинка", upload_to="posts/", blank=True)
 
-    def __str__(self):
-        return self.text
-
     class Meta:
         ordering = ("-pub_date",)
+
+    def __str__(self):
+        return self.text
 
 
 class Comment(models.Model):

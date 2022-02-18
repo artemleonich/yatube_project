@@ -244,6 +244,9 @@ class FollowTest(TestCase):
         self.assertEqual(Follow.objects.count(), follow_count + 1)
         self.assertEqual(follow.author, self.author)
         self.assertEqual(follow.user, self.user)
+        self.assertTrue(
+            Follow.objects.filter(user=self.user, author=self.author).exists()
+        )
 
     def test_auth_user_can_unfollow(self):
         """Авторизованный пользователь может отписываться."""
@@ -257,6 +260,9 @@ class FollowTest(TestCase):
             )
         )
         self.assertEqual(Follow.objects.count(), follow_count)
+        self.assertFalse(
+            Follow.objects.filter(user=self.user, author=self.author).exists()
+        )
 
     def test_new_post_appear_in_follower_page(self):
         """Новая запись автора появляется в ленте тех, кто на него подписан."""
