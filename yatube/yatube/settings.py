@@ -26,8 +26,10 @@ SECRET_KEY = "59pvv$@+^^)ota^s6i=_e+2s1tpq&@q#2hvg!^h#fcpjw63po+"
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "www.artemleonov.pythonanywhere.com",
-    "artemleonov.pythonanywhere.com",
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+    "testserver",
 ]
 
 
