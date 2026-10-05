@@ -1,6 +1,6 @@
 # Yatube
 
-<img src=".github/assets/stack.svg" height="28" alt="Python · Django · Learning" />
+<a href=".github/assets/light/stack.svg#gh-light-mode-only"><img src=".github/assets/light/stack.svg" height="28" alt="Python · Django · Learning" /></a><a href=".github/assets/stack.svg#gh-dark-mode-only"><img src=".github/assets/stack.svg" height="28" alt="Python · Django · Learning" /></a>
 
 Публикации, комментарии и лента любимых авторов.
 
