@@ -1,12 +1,10 @@
-<p align="center">
-  <img src=".github/assets/banner.svg" width="100%" alt="Yatube" />
-</p>
-
 # Yatube
+
+<img src=".github/assets/stack.svg" height="28" alt="Python · Django · Learning" />
 
 Публикации, комментарии и лента любимых авторов.
 
-**Учебный проект** · Python · Django 2.2.19 · SQLite · Django TestCase  
+**Учебный проект**  
 [Русский](#about) · [English](#english) · [Профиль](https://github.com/artemleonich)
 
 <a id="about"></a>
