@@ -1,205 +1,92 @@
+<p align="center">
+  <img src=".github/assets/banner.svg" width="100%" alt="Yatube" />
+</p>
+
 # Yatube
 
-**[Русский](#русский) | [English](#english)**
+Публикации, комментарии и лента любимых авторов.
 
----
+**Учебный проект** · Python · Django 2.2.19 · SQLite · Django TestCase  
+[Русский](#about) · [English](#english) · [Профиль](https://github.com/artemleonich)
 
-## Русский
+<a id="about"></a>
 
-### Описание
+## О проекте
 
-Yatube — социальная блог-платформа, созданная на Django. Позволяет пользователям публиковать посты с изображениями, объединять их в тематические группы, подписываться на авторов и оставлять комментарии.
+Учебная блог-платформа на Django: публикации, тематические группы, комментарии и подписки на авторов. В репозитории собрана версия Yatube с тестами приложения и настройками Django Debug Toolbar.
 
-### Возможности
+- Регистрация, вход и профили авторов.
+- Создание текстовых постов и редактирование собственных публикаций.
+- Тематические группы и пагинация лент.
+- Изображения в публикациях, комментарии и страницы отдельных записей.
+- Подписка и отписка от авторов, отдельная лента подписок.
+- Кеширование блока главной ленты на 20 секунд.
+- Страницы ошибок и админ-панель Django.
 
-- Регистрация и аутентификация пользователей
-- Создание, редактирование и удаление постов
-- Прикрепление изображений к постам
-- Группировка постов по тематическим сообществам
-- Комментарии к публикациям
-- Система подписок на авторов
-- Лента постов от избранных авторов
-- Пагинация
-- Кэширование страниц
+Учебные этапы проекта: [сообщества](https://github.com/artemleonich/hw02_community) · [формы](https://github.com/artemleonich/hw03_forms) · [тесты](https://github.com/artemleonich/hw04_tests) · [финальный этап](https://github.com/artemleonich/hw05_final).
 
-### Технологии
-
-- Python 3.10
-- Django 2.2.19
-- SQLite
-- Unittest
-- django-debug-toolbar 3.2.4
-
-### Структура проекта
-
-```
-yatube_project/
-├── yatube/
-│   ├── about/          # Приложение статических страниц
-│   ├── core/           # Общие утилиты и контекст-процессоры
-│   ├── posts/          # Основное приложение (посты, группы, комментарии, подписки)
-│   │   ├── tests/      # Тесты моделей, представлений, форм и URL
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── forms.py
-│   │   └── urls.py
-│   ├── users/          # Приложение пользователей
-│   ├── static/         # Статические файлы (CSS, JS, изображения)
-│   ├── templates/      # HTML-шаблоны
-│   └── yatube/         # Настройки проекта
-├── requirements.txt
-└── README.md
-```
-
-### Запуск проекта
-
-Клонируйте репозиторий:
+## Запуск
 
 ```bash
 git clone https://github.com/artemleonich/yatube_project.git
 cd yatube_project
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+# Dependencies used by the project but missing from requirements.txt
+python -m pip install Pillow==8.3.1 sorl-thumbnail==12.7.0
+python yatube/manage.py migrate
+python yatube/manage.py createsuperuser
+python yatube/manage.py runserver
 ```
 
-Создайте и активируйте виртуальное окружение:
+В Windows PowerShell: `.venv\Scripts\Activate.ps1`.
+
+Приложение доступно по адресу [127.0.0.1:8000](http://127.0.0.1:8000/). Суперпользователь нужен для [админ-панели](http://127.0.0.1:8000/admin/), где можно создать тематические группы.
+
+В [requirements.txt](requirements.txt) отсутствуют `Pillow` и `sorl-thumbnail`, хотя они используются приложением. Отдельная команда выше добавляет версии из учебного [hw05_final](https://github.com/artemleonich/hw05_final/blob/master/requirements.txt); файл зависимостей в этом репозитории сохранён в исходном виде.
+
+## Проверка
+
+Тесты приложения запускаются из корня репозитория через Django:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python yatube/manage.py test posts about core
 ```
 
-Установите зависимости:
+В `yatube/posts/tests/` находятся проверки моделей, маршрутов, представлений и форм.
 
-```bash
-pip install -r requirements.txt
-```
+## Навигация по коду
 
-Выполните миграции:
+| Путь | Назначение |
+| --- | --- |
+| [yatube/posts/](yatube/posts/) | Посты, комментарии, подписки и формы |
+| [yatube/users/](yatube/users/) | Регистрация и авторизация |
+| [yatube/core/](yatube/core/) | Страницы ошибок и общие функции |
+| [yatube/templates/](yatube/templates/) | HTML-шаблоны |
+| [yatube/posts/tests/](yatube/posts/tests/) | Тесты приложения |
+| [yatube/yatube/settings.py](yatube/yatube/settings.py) | SQLite, медиафайлы и кеш |
 
-```bash
-cd yatube
-python3 manage.py migrate
-```
+## Статус
 
-Запустите сервер разработки:
+Сохранён учебный стек Django 2.2. Запуск на новых версиях Python может потребовать адаптации окружения. В текущей реализации картинку можно загрузить при редактировании поста; форма создания не обрабатывает файлы.
 
-```bash
-python3 manage.py runserver
-```
+<a id="english"></a>
 
-Проект будет доступен по адресу http://127.0.0.1:8000/
+<details>
+<summary>English overview</summary>
 
-### Запуск тестов
+A Django learning project with posts, groups, images, comments, author follows and a following feed. Application tests use Django TestCase. The requirements file is missing Pillow and sorl-thumbnail; install the supplemental versions shown above to reproduce the image-related dependencies from the final learning stage.
 
-```bash
-cd yatube
-python3 manage.py test
-```
+Create a virtual environment, install the dependencies, run `python yatube/manage.py migrate`, optionally create an admin account, then start `python yatube/manage.py runserver`. Run `python yatube/manage.py test posts about core` for Django tests.
 
-### Автор
+The code retains the original Django 2.2 learning stack. Image uploads are handled when editing a post; the creation view does not process uploaded files. The main feed fragment is cached for twenty seconds.
 
-Артём — [GitHub](https://github.com/artemleonich)
-
-### Лицензия
-
-Проект распространяется под лицензией [MIT](LICENSE).
+</details>
 
 ---
 
-## English
+Автор: [Артём Леонов](https://github.com/artemleonich).
 
-### Description
+Лицензия: [MIT](LICENSE).
 
-Yatube is a social blogging platform built with Django. It allows users to publish posts with images, organize them into thematic groups, follow authors, and leave comments.
-
-### Features
-
-- User registration and authentication
-- Create, edit, and delete posts
-- Attach images to posts
-- Group posts by thematic communities
-- Comment on publications
-- Author subscription system
-- Feed of posts from followed authors
-- Pagination
-- Page caching
-
-### Tech Stack
-
-- Python 3.10
-- Django 2.2.19
-- SQLite
-- Unittest
-- django-debug-toolbar 3.2.4
-
-### Project Structure
-
-```
-yatube_project/
-├── yatube/
-│   ├── about/          # Static pages app
-│   ├── core/           # Shared utilities and context processors
-│   ├── posts/          # Main app (posts, groups, comments, follows)
-│   │   ├── tests/      # Tests for models, views, forms, and URLs
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   ├── forms.py
-│   │   └── urls.py
-│   ├── users/          # Users app
-│   ├── static/         # Static files (CSS, JS, images)
-│   ├── templates/      # HTML templates
-│   └── yatube/         # Project settings
-├── requirements.txt
-└── README.md
-```
-
-### Getting Started
-
-Clone the repository:
-
-```bash
-git clone https://github.com/artemleonich/yatube_project.git
-cd yatube_project
-```
-
-Create and activate a virtual environment:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run migrations:
-
-```bash
-cd yatube
-python3 manage.py migrate
-```
-
-Start the development server:
-
-```bash
-python3 manage.py runserver
-```
-
-The project will be available at http://127.0.0.1:8000/
-
-### Running Tests
-
-```bash
-cd yatube
-python3 manage.py test
-```
-
-### Author
-
-Artem — [GitHub](https://github.com/artemleonich)
-
-### License
-
-This project is licensed under the [MIT](LICENSE) License.
